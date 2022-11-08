@@ -23,7 +23,8 @@
 void setup() {
 
   Serial.begin(SERIAL_RATE);
-
+  // Optional - setup MQTT last will & testament
+  bootstrapManager.setMQTTWill("path/for/last/will/message","last will payload",lastWillQOS,lastWillRetain,cleanSession);
   bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
   
   // ENTER YOUR CODE HERE
@@ -32,12 +33,12 @@ void setup() {
 
 /********************************** MANAGE WIFI AND MQTT DISCONNECTION *****************************************/
 void manageDisconnections() {
- 
+
 }
 
 /********************************** MQTT SUBSCRIPTIONS *****************************************/
 void manageQueueSubscription() {
-  
+
   // example to topic subscription
   bootstrapManager.subscribe(CHANGE_ME_TOPIC);
   bootstrapManager.subscribe(CHANGE_ME_JSON_TOPIC);
@@ -46,18 +47,18 @@ void manageQueueSubscription() {
 
 /********************************** MANAGE HARDWARE BUTTON *****************************************/
 void manageHardwareButton() {
- 
+
 }
 
 /********************************** START CALLBACK *****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
 
-  // Transform all messages in a JSON format  
-  StaticJsonDocument<BUFFER_SIZE> json = bootstrapManager.parseQueueMsg(topic, payload, length);
+  // Transform all messages in a JSON format
+  JsonDocument json = bootstrapManager.parseQueueMsg(topic, payload, length);
 
   if(strcmp(topic, CHANGE_ME_TOPIC) == 0) {
     String simpleMsg = json[VALUE];
-    // Serial.println(simpleMsg);    
+    // Serial.println(simpleMsg);
   } else if(strcmp(topic, CHANGE_ME_JSON_TOPIC) == 0) {
     String simpleMsg = json["ROOT_EXAMPLE"];
     // Serial.println(simpleMsg);
@@ -69,7 +70,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void loop() {
 
   if (isConfigFileOk) {
-  
+
     // Bootsrap loop() with Wifi, MQTT and OTA functions
     bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
 
@@ -80,12 +81,12 @@ void loop() {
 
     // Send MSG to the MQTT queue with no retention
     bootstrapManager.publish(CHANGE_ME_TOPIC, "SEND SIMPLE MSG TO THE QUEUE", false);  
-    
+
     // Send JSON MSG to the MQTT queue with no retention
-    JsonObject root = bootstrapManager.getJsonObject();    
+    JsonObject root = bootstrapManager.getJsonObject();
     root["ROOT_EXAMPLE"] = "SEND JSON MSG TO THE QUEUE";
-    bootstrapManager.publish(CHANGE_ME_JSON_TOPIC, root, false);  
+    bootstrapManager.publish(CHANGE_ME_JSON_TOPIC, root, false);
 
   }
-  
+
 }

@@ -24,10 +24,6 @@
 #include "Configuration.h"
 
 
-// Maximum JSON Object Size
-const int BUFFER_SIZE = JSON_OBJECT_SIZE(SMALL_JSON_OBJECT_SIZE);
-const int BUFFER_SIZE_MAX_SIZE = JSON_OBJECT_SIZE(MAX_JSON_OBJECT_SIZE);
-
 extern bool isConfigFileOk;
 extern String lastMQTTConnection;
 extern String lastWIFiConnection;
@@ -51,6 +47,11 @@ extern String mqttIP;
 extern String mqttPort;
 extern String mqttuser;
 extern String mqttpass;
+extern String mqttWillTopic;
+extern String mqttWillPayload;
+extern int mqttWillQOS;
+extern bool mqttWillRetain;
+extern bool mqttCleanSession;
 extern String additionalParam;
 
 // Blink LED vars
@@ -146,7 +147,7 @@ class Helpers {
     long versionNumberToNumber(String latestReleaseStr);
     char* string2char(const String command);
     void setDateTime(String timeConst);
-    String isOnOff(StaticJsonDocument<BUFFER_SIZE> json);
+    String isOnOff(JsonDocument json);
 
 };
 

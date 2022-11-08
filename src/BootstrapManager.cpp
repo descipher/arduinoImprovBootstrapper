@@ -1,19 +1,19 @@
 /*
   BoostrapManager.cpp - Main file for bootstrapping arduino projects
-  
+
   Copyright (C) 2020 - 2022  Davide Perini
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-  copies of the Software, and to permit persons to whom the Software is 
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in 
+  The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-  
-  You should have received a copy of the MIT License along with this program.  
+
+  You should have received a copy of the MIT License along with this program.
   If not, see <https://opensource.org/licenses/MIT/>.
 */
 
@@ -68,6 +68,11 @@ void BootstrapManager::bootstrapLoop(void (*manageDisconnections)(), void (*mana
     queueManager.queueLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   }
 
+}
+
+/********************************** SET LAST WILL PARAMETERS IN THE Q MANAGER **********************************/
+void BootstrapManager::setMQTTWill(const char *topic, const char *payload, const int qos, boolean retain, boolean cleanSession){
+  queueManager.setMQTTWill(topic, payload, qos, retain, cleanSession);
 }
 
 /********************************** SEND A SIMPLE MESSAGE ON THE QUEUE **********************************/
@@ -130,7 +135,7 @@ void BootstrapManager::subscribe(const char *topic, uint8_t qos) {
 }
 
 /********************************** PRINT THE MESSAGE ARRIVING FROM THE QUEUE **********************************/
-StaticJsonDocument<BUFFER_SIZE> BootstrapManager::parseQueueMsg(char* topic, byte* payload, unsigned int length) {
+JsonDocument BootstrapManager::parseQueueMsg(char* topic, byte* payload, unsigned int length) {
 
   if (DEBUG_QUEUE_MSG) {
     Serial.print(F("QUEUE MSG ARRIVED [")); Serial.print(topic); Serial.println(F("] "));
@@ -163,7 +168,7 @@ StaticJsonDocument<BUFFER_SIZE> BootstrapManager::parseQueueMsg(char* topic, byt
 }
 
 /********************************** PRINT THE MESSAGE ARRIVING FROM HTTP **********************************/
-StaticJsonDocument<BUFFER_SIZE> BootstrapManager::parseHttpMsg(String payload, unsigned int length) {
+JsonDocument BootstrapManager::parseHttpMsg(String payload, unsigned int length) {
 
   char message[length + 1];
   for (unsigned int i = 0; i < length; i++) {
@@ -311,7 +316,7 @@ void BootstrapManager::sendState(const char *topic, JsonObject objectToSend, Str
 
 // write json file to storage
 #if defined(ESP8266)
-void BootstrapManager::writeToLittleFS(DynamicJsonDocument jsonDoc, String filename) {
+void BootstrapManager::writeToLittleFS(JsonDocument jsonDoc, String filename) {
 
   File jsonFile = LittleFS.open("/" + filename, "w");
   if (!jsonFile) {
@@ -328,8 +333,8 @@ void BootstrapManager::writeToLittleFS(DynamicJsonDocument jsonDoc, String filen
 
 // write json file to storage
 #if defined(ESP32)
-void BootstrapManager::writeToSPIFFS(DynamicJsonDocument jsonDoc, String filename) {
-  
+void BootstrapManager::writeToSPIFFS(JsonDocument jsonDoc, String filename) {
+
   if (SPIFFS.begin(true)) {
     // SPIFFS.format();
     File configFile = SPIFFS.open("/" + filename, "w");
@@ -350,12 +355,12 @@ void BootstrapManager::writeToSPIFFS(DynamicJsonDocument jsonDoc, String filenam
 
 // read json file from storage
 #if defined(ESP8266)
-DynamicJsonDocument BootstrapManager::readLittleFS(String filename) {
+JsonDocument BootstrapManager::readLittleFS(String filename) {
 
   // Helpers classes
   Helpers helper;
 
-  #if (DISPLAY_ENABLED) 
+  #if (DISPLAY_ENABLED)
     display.clearDisplay();
     display.setCursor(0, 0);
     display.setTextSize(1);
@@ -383,7 +388,7 @@ DynamicJsonDocument BootstrapManager::readLittleFS(String filename) {
   // use configFile.readString instead.
   jsonFile.readBytes(buf.get(), size);
 
-  DynamicJsonDocument jsonDoc(1024);
+  JsonDocument jsonDoc;
   auto error = deserializeJson(jsonDoc, buf.get());
   if (filename != "setup.json") serializeJsonPretty(jsonDoc, Serial);
   jsonFile.close();
@@ -414,7 +419,7 @@ String BootstrapManager::readValueFromFile(String filename, String paramName) {
   size_t size = jsonFile.size();
   std::unique_ptr<char[]> buf(new char[size]);
   jsonFile.readBytes(buf.get(), size);
-  DynamicJsonDocument jsonDoc(1024);
+  JsonDocument jsonDoc;
   auto error = deserializeJson(jsonDoc, buf.get());
   serializeJsonPretty(jsonDoc, Serial);
   JsonVariant answer = jsonDoc[paramName];
@@ -434,13 +439,13 @@ String BootstrapManager::readValueFromFile(String filename, String paramName) {
 
 // read json file from storage
 #if defined(ESP32)
-DynamicJsonDocument BootstrapManager::readSPIFFS(String filename) {
+JsonDocument BootstrapManager::readSPIFFS(String filename) {
 
   // Helpers classes
   Helpers helper;
-  DynamicJsonDocument jsonDoc(1024);
+  JsonDocument jsonDoc;
 
-  #if (DISPLAY_ENABLED) 
+  #if (DISPLAY_ENABLED)
     display.clearDisplay();
     display.setCursor(0, 0);
     display.setTextSize(1);
@@ -471,7 +476,7 @@ DynamicJsonDocument BootstrapManager::readSPIFFS(String filename) {
           jsonDoc[VALUE] = ERROR;
           helper.smartPrintln(F("Failed to load json file"));
         }
-      } 
+      }
     } else {
       jsonDoc[VALUE] = ERROR;
       helper.smartPrintln("Error reading " + filename + " file...");
@@ -495,7 +500,7 @@ String BootstrapManager::readValueFromFile(String filename, String paramName, bo
         size_t size = configFile.size();
         std::unique_ptr<char[]> buf(new char[size]);
         configFile.readBytes(buf.get(), size);
-        DynamicJsonDocument jsonDoc(1024);
+        JsonDocument jsonDoc;
         DeserializationError deserializeError = deserializeJson(jsonDoc, (const char*)buf.get());
         serializeJsonPretty(jsonDoc, Serial);
         if (deserializeError) {
@@ -541,9 +546,9 @@ bool BootstrapManager::isWifiConfigured() {
     return true;
   } else {
 #if defined(ESP8266)
-    DynamicJsonDocument mydoc = readLittleFS("setup.json");
+    JsonDocument mydoc = readLittleFS("setup.json");
 #elif defined(ESP32)
-    DynamicJsonDocument mydoc = readSPIFFS("setup.json");
+    JsonDocument mydoc = readSPIFFS("setup.json");
 #endif
     if (mydoc.containsKey("qsid")) {
       Serial.println("Storage OK, restoring WiFi and MQTT config.");

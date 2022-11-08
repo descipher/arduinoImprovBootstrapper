@@ -1,19 +1,19 @@
 /*
   BoostrapManager.cpp - Main header for bootstrapping arduino projects
-  
+
   Copyright (C) 2020 - 2022  Davide Perini
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-  copies of the Software, and to permit persons to whom the Software is 
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in 
+  The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-  
-  You should have received a copy of the MIT License along with this program.  
+
+  You should have received a copy of the MIT License along with this program.
   If not, see <https://opensource.org/licenses/MIT/>.
 */
 
@@ -29,7 +29,7 @@
   #include <LittleFS.h>
 #elif defined(ESP32)
   #include "SPIFFS.h"
-#endif 
+#endif
 #include "Configuration.h"
 #include "Helpers.h"
 #include "WifiManager.h"
@@ -44,13 +44,12 @@ class BootstrapManager {
     Helpers helper;
 
   public:
-    StaticJsonDocument<BUFFER_SIZE> jsonDoc;
-    StaticJsonDocument<BUFFER_SIZE_MAX_SIZE> jsonDocBigSize;
-    // using JsonDocument = StaticJsonDocument<BUFFER_SIZE>;
-    StaticJsonDocument<BUFFER_SIZE> parseQueueMsg(char* topic, byte* payload, unsigned int length); // print the message arriving from the queue
-    StaticJsonDocument<BUFFER_SIZE> parseHttpMsg(String payload, unsigned int length); // print the message arriving from HTTP
+    JsonDocument jsonDoc;
+    JsonDocument parseQueueMsg(char* topic, byte* payload, unsigned int length); // print the message arriving from the queue
+    JsonDocument parseHttpMsg(String payload, unsigned int length); // print the message arriving from HTTP
     void bootstrapSetup(void (*manageDisconnectionFunction)(), void (*manageHardwareButton)(), void (*callback)(char*, byte*, unsigned int)); // bootstrap setup()
     void bootstrapLoop(void (*manageDisconnectionFunction)(), void (*manageQueueSubscription)(), void (*manageHardwareButton)()); // bootstrap loop()
+    void setMQTTWill(const char *topic, const char *payload, const int qos, boolean retain, boolean cleanSession); // set the last will parameters for mqtt
     void publish(const char *topic, const char *payload, boolean retained); // send a message on the queue
     void publish(const char *topic, JsonObject objectToSend, boolean retained); // send a message on the queue
     void unsubscribe(const char *topic); // unsubscribe to a queue topic
@@ -63,11 +62,11 @@ class BootstrapManager {
     void drawScreenSaver(String txt); // useful for OLED displays
     void sendState(const char *topic, JsonObject objectToSend, String version); // send microcontroller's info on the queue 
     #if defined(ESP8266)
-      void writeToLittleFS(DynamicJsonDocument jsonDoc, String filename); // write json file to storage
-      DynamicJsonDocument readLittleFS(String filename); // read json file from storage
+      void writeToLittleFS(JsonDocument jsonDoc, String filename); // write json file to storage
+      JsonDocument readLittleFS(String filename); // read json file from storage
     #elif defined(ESP32)
-      void writeToSPIFFS(DynamicJsonDocument jsonDoc, String filename); // write json file to storage
-      DynamicJsonDocument readSPIFFS(String filename); // read json file from storage
+      void writeToSPIFFS(JsonDocument jsonDoc, String filename); // write json file to storage
+      JsonDocument readSPIFFS(String filename); // read json file from storage
     #endif
     String readValueFromFile(String filename, String paramName); // read a param from a json file
     String readValueFromFile(String filename, String paramName, bool format); // read a param from a json file
