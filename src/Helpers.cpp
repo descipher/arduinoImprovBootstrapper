@@ -42,6 +42,11 @@ String mqttIP = "XXX";
 String mqttPort = "XXX";
 String mqttuser = "XXX";
 String mqttpass = "XXX";
+String mqttWillTopic = "0";
+String mqttWillPayload = "0";
+int mqttWillQOS = 1;
+bool mqttWillRetain = 0;
+bool mqttCleanSession = 1;
 String additionalParam = "XXX";
 
 long previousMillis = 0;     
@@ -154,7 +159,7 @@ void Helpers::setDateTime(String timeConst) {
 }
 
 // Return ON OFF value
-String Helpers::isOnOff(StaticJsonDocument<BUFFER_SIZE> json) {
+String Helpers::isOnOff(JsonDocument json) {
 
   String str = json[VALUE];
   return ((str == ON_CMD) || (str == on_CMD)) ? ON_CMD : OFF_CMD ;

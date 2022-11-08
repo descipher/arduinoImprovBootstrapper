@@ -1,19 +1,18 @@
 /*
   QueueManager.cpp - Managing MQTT queue
-  
   Copyright (C) 2020 - 2022  Davide Perini
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-  copies of the Software, and to permit persons to whom the Software is 
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in 
+  The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-  
-  You should have received a copy of the MIT License along with this program.  
+
+  You should have received a copy of the MIT License along with this program.
   If not, see <https://opensource.org/licenses/MIT/>.
 */
 
@@ -35,6 +34,15 @@ void QueueManager::setupMQTTQueue(void (*callback)(char*, byte*, unsigned int)) 
 
 }
 
+/********************************** SET LAST WILL PARAMETERS **********************************/
+void QueueManager::setMQTTWill(const char *topic, const char *payload, const int qos, boolean retain, boolean cleanSession){
+  mqttWillTopic = topic;
+  mqttWillPayload = payload;
+  mqttWillQOS = qos;
+  mqttWillRetain = retain;
+  mqttCleanSession = cleanSession;
+}
+
 /********************************** MQTT RECONNECT **********************************/
 void QueueManager::mqttReconnect(void (*manageDisconnections)(), void (*manageQueueSubscription)(), void (*manageHardwareButton)()) {
 
@@ -44,7 +52,7 @@ void QueueManager::mqttReconnect(void (*manageDisconnections)(), void (*manageQu
   // Loop until we're reconnected
   while (!mqttClient.connected() && WiFi.status() == WL_CONNECTED) {
 
-    #if (DISPLAY_ENABLED) 
+    #if (DISPLAY_ENABLED)
       display.clearDisplay();
       display.setTextSize(1);
       display.setCursor(0,0);
@@ -60,10 +68,23 @@ void QueueManager::mqttReconnect(void (*manageDisconnections)(), void (*manageQu
 
     // Attempt to connect to MQTT server with QoS = 1 (pubsubclient supports QoS 1 for subscribe only, published msg have QoS 0 this is why I implemented a custom solution)
     boolean mqttSuccess;
+
+    Serial.println("MQTT Last Will Params: ");
+    Serial.print("willTopic: ");
+    Serial.println(mqttWillTopic);
+    Serial.print("willPayload: ");
+    Serial.println(mqttWillPayload);
+    Serial.print("qos: ");
+    Serial.println(mqttWillQOS);
+    Serial.print("retain: ");
+    Serial.println(mqttWillRetain);
+    Serial.print("clean session: ");
+    Serial.println(mqttCleanSession);
+
     if (mqttuser.isEmpty() || mqttpass.isEmpty()) {
-      mqttSuccess = mqttClient.connect(helper.string2char(deviceName), 0, 1, 0, 0);
+      mqttSuccess = mqttClient.connect(helper.string2char(deviceName), helper.string2char(mqttWillTopic), mqttWillQOS, mqttWillRetain, helper.string2char(mqttWillPayload));
     } else {
-      mqttSuccess = mqttClient.connect(helper.string2char(deviceName), helper.string2char(mqttuser), helper.string2char(mqttpass), 0, 1, 0, 0, 1);
+      mqttSuccess = mqttClient.connect(helper.string2char(deviceName), helper.string2char(mqttuser), helper.string2char(mqttpass), helper.string2char(mqttWillTopic), mqttWillQOS, mqttWillRetain, helper.string2char(mqttWillPayload), mqttCleanSession);
     }
     if (mqttSuccess) {
 
