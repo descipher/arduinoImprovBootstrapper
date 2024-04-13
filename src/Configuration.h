@@ -1,19 +1,19 @@
 /*
   Configuration.h - Config header
-  
+
   Copyright (C) 2020 - 2022  Davide Perini
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-  copies of the Software, and to permit persons to whom the Software is 
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in 
+  The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-  
-  You should have received a copy of the MIT License along with this program.  
+
+  You should have received a copy of the MIT License along with this program.
   If not, see <https://opensource.org/licenses/MIT/>.
 */
 
@@ -69,6 +69,12 @@ extern Adafruit_SSD1306 display;
 #define WIFI_DEVICE_NAME "ArduinoBootstrapper"
 #endif
 const char* const DEVICE_NAME = WIFI_DEVICE_NAME;
+
+// HOSTNAME will be used as device network name
+#ifndef NODE_NAME
+#define NODE_NAME "cfgHost"
+#endif
+const char* const HOST = NODE_NAME;
 
 // Port for the OTA firmware uplaod
 #ifndef MICROCONTROLLER_OTA_PORT

@@ -26,54 +26,53 @@
 #include <Wire.h>
 #include <FS.h>
 #if defined(ESP8266)
-  #include <LittleFS.h>
+#include <LittleFS.h>
 #elif defined(ESP32)
-  #include "SPIFFS.h"
+#include "SPIFFS.h"
 #endif
 #include "Configuration.h"
 #include "Helpers.h"
 #include "WifiManager.h"
 #include "QueueManager.h"
 
+class BootstrapManager
+{
 
-class BootstrapManager {
+private:
+  WifiManager wifiManager;   // WifiManager classes for Wifi management
+  QueueManager queueManager; // QueueManager classes for MQTT queue management
+  Helpers helper;
 
-  private:
-    WifiManager wifiManager; // WifiManager classes for Wifi management
-    QueueManager queueManager; // QueueManager classes for MQTT queue management
-    Helpers helper;
-
-  public:
-    JsonDocument jsonDoc;
-    JsonDocument parseQueueMsg(char* topic, byte* payload, unsigned int length); // print the message arriving from the queue
-    JsonDocument parseHttpMsg(String payload, unsigned int length); // print the message arriving from HTTP
-    void bootstrapSetup(void (*manageDisconnectionFunction)(), void (*manageHardwareButton)(), void (*callback)(char*, byte*, unsigned int)); // bootstrap setup()
-    void bootstrapLoop(void (*manageDisconnectionFunction)(), void (*manageQueueSubscription)(), void (*manageHardwareButton)()); // bootstrap loop()
-    void setMQTTWill(const char *topic, const char *payload, const int qos, boolean retain, boolean cleanSession); // set the last will parameters for mqtt
-    void publish(const char *topic, const char *payload, boolean retained); // send a message on the queue
-    void publish(const char *topic, JsonObject objectToSend, boolean retained); // send a message on the queue
-    void unsubscribe(const char *topic); // unsubscribe to a queue topic
-    void subscribe(const char *topic); // subscribe to a queue topic
-    void subscribe(const char *topic, uint8_t qos); // subscribe to a queue topic with qos 0 or 1
-    JsonObject getJsonObject(); // return a new json object instance
-    void nonBlokingBlink(); // blink default LED when sending data to the queue
-    void getMicrocontrollerInfo(); // print or display microcontroller's info
-    void drawInfoPage(String softwareVersion, String author); // draw a page with all the microcontroller's info
-    void drawScreenSaver(String txt); // useful for OLED displays
-    void sendState(const char *topic, JsonObject objectToSend, String version); // send microcontroller's info on the queue 
-    #if defined(ESP8266)
-      void writeToLittleFS(JsonDocument jsonDoc, String filename); // write json file to storage
-      JsonDocument readLittleFS(String filename); // read json file from storage
-    #elif defined(ESP32)
-      void writeToSPIFFS(JsonDocument jsonDoc, String filename); // write json file to storage
-      JsonDocument readSPIFFS(String filename); // read json file from storage
-    #endif
-    String readValueFromFile(String filename, String paramName); // read a param from a json file
-    String readValueFromFile(String filename, String paramName, bool format); // read a param from a json file
-    bool isWifiConfigured(); // check if wifi is correctly configured
-    void launchWebServerForOTAConfig(); // if no ssid available, launch web server to get config params via browser
-    int getWifiQuality(); // get the wifi quality
-
+public:
+  JsonDocument jsonDoc;
+  JsonDocument parseQueueMsg(char *topic, byte *payload, unsigned int length);                                                                // print the message arriving from the queue
+  JsonDocument parseHttpMsg(String payload, unsigned int length);                                                                             // print the message arriving from HTTP
+  void bootstrapSetup(void (*manageDisconnectionFunction)(), void (*manageHardwareButton)(), void (*callback)(char *, byte *, unsigned int)); // bootstrap setup()
+  void bootstrapLoop(void (*manageDisconnectionFunction)(), void (*manageQueueSubscription)(), void (*manageHardwareButton)());               // bootstrap loop()
+  void setMQTTWill(const char *topic, const char *payload, const int qos, boolean retain, boolean cleanSession);                              // set the last will parameters for mqtt
+  void publish(const char *topic, const char *payload, boolean retained);                                                                     // send a message on the queue
+  void publish(const char *topic, JsonObject objectToSend, boolean retained);                                                                 // send a message on the queue
+  void unsubscribe(const char *topic);                                                                                                        // unsubscribe to a queue topic
+  void subscribe(const char *topic);                                                                                                          // subscribe to a queue topic
+  void subscribe(const char *topic, uint8_t qos);                                                                                             // subscribe to a queue topic with qos 0 or 1
+  JsonObject getJsonObject();                                                                                                                 // return a new json object instance
+  void nonBlokingBlink();                                                                                                                     // blink default LED when sending data to the queue
+  void getMicrocontrollerInfo();                                                                                                              // print or display microcontroller's info
+  void drawInfoPage(String softwareVersion, String author);                                                                                   // draw a page with all the microcontroller's info
+  void drawScreenSaver(String txt);                                                                                                           // useful for OLED displays
+  void sendState(const char *topic, JsonObject objectToSend, String version);                                                                 // send microcontroller's info on the queue
+#if defined(ESP8266)
+  void writeToLittleFS(JsonDocument jsonDoc, String filename); // write json file to storage
+  JsonDocument readLittleFS(String filename);                  // read json file from storage
+#elif defined(ESP32)
+  void writeToSPIFFS(JsonDocument jsonDoc, String filename); // write json file to storage
+  JsonDocument readSPIFFS(String filename);                  // read json file from storage
+#endif
+  String readValueFromFile(String filename, String paramName);              // read a param from a json file
+  String readValueFromFile(String filename, String paramName, bool format); // read a param from a json file
+  bool isWifiConfigured();                                                  // check if wifi is correctly configured
+  void launchWebServerForOTAConfig();                                       // if no ssid available, launch web server to get config params via browser
+  int getWifiQuality();                                                     // get the wifi quality
 };
 
 #endif
