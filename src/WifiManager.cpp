@@ -701,7 +701,7 @@ void WifiManager::parseWiFiCommand(char *rpcData) {
   }
   sendImprovStateResponse(0x03, false); //provisioning
   improvActive = 2;
-  JsonDocument doc(1024);
+  JsonDocument doc;
   String devName = String(random(0, 90000));
   doc["deviceName"] = String(DEVICE_NAME) + "_" + devName;
   doc["microcontrollerIP"] = "DHCP";
